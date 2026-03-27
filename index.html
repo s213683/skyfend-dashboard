@@ -808,6 +808,22 @@
       flex: 1;
       min-height: 0;
     }
+    /* AI 日志：整块贴在 stage 最底，与上方工作区（追踪/设备/设备+配置）分离 */
+    .stage-ai-dock {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      border-top: 2px solid #1e1e22;
+      background: #080809;
+      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.35);
+    }
+    .stage-ai-dock .h-grip {
+      border-top: none;
+    }
+    .stage-ai-dock .ai-log {
+      border-top: 1px solid var(--border);
+    }
     .target-flyout {
       position: fixed;
       width: min(300px, calc(100vw - 16px));
@@ -1539,16 +1555,19 @@
             </div>
           </section>
         </div>
-        <div class="h-grip" id="hGrip" role="separator" aria-orientation="horizontal" aria-label="拖动调整 AI 日志区高度"></div>
-        <footer class="ai-log" id="aiLog" style="height: 120px;">
-          <div class="ai-log-h">AI 日志区</div>
-          <div class="ai-log-body" id="aiLogBody" tabindex="-1">
-            <div class="line"><span class="time">14:04:41</span>模型置信度 0.94 — 识别为 DJI M30，建议持续追踪。</div>
-            <div class="line"><span class="time">14:04:42</span>频谱峰值 2.412 GHz，与目标 #ZRVP 关联。</div>
-            <div class="line"><span class="time">14:04:43</span>无新增友好目标；区域风控等级维持 L2。</div>
-          </div>
-        </footer>
       </div>
+    </div>
+
+    <div class="stage-ai-dock" id="stageAiDock" aria-label="AI 日志栏">
+      <div class="h-grip" id="hGrip" role="separator" aria-orientation="horizontal" aria-label="拖动调整 AI 日志区高度"></div>
+      <footer class="ai-log" id="aiLog" style="height: 120px;">
+        <div class="ai-log-h">AI 日志区</div>
+        <div class="ai-log-body" id="aiLogBody" tabindex="-1">
+          <div class="line"><span class="time">14:04:41</span>模型置信度 0.94 — 识别为 DJI M30，建议持续追踪。</div>
+          <div class="line"><span class="time">14:04:42</span>频谱峰值 2.412 GHz，与目标 #ZRVP 关联。</div>
+          <div class="line"><span class="time">14:04:43</span>无新增友好目标；区域风控等级维持 L2。</div>
+        </div>
+      </footer>
     </div>
 
   </div>
@@ -1968,6 +1987,12 @@
       draggingH = false;
       hGrip.classList.remove('dragging');
       document.body.classList.remove('resizing-h');
+      refreshMapLayout();
+      refreshCenterMap();
+      var selFly = document.querySelector('#cardList .t-card.selected');
+      if (selFly && targetFlyout && !targetFlyout.classList.contains('panel-hidden')) {
+        positionTargetFlyout(selFly);
+      }
     }
   });
 
@@ -1988,8 +2013,10 @@
     if (!draggingH) return;
     var dy = startY - e.clientY;
     var nh = startH + dy;
-    var stack = document.querySelector('.center-stack');
-    var maxH = stack.clientHeight - 80;
+    var topbar = document.querySelector('.topbar');
+    var topH = topbar ? topbar.offsetHeight : 52;
+    var minWorkspace = 120;
+    var maxH = Math.max(80, stage.clientHeight - topH - 6 - minWorkspace);
     nh = Math.max(48, Math.min(maxH, nh));
     aiLog.style.height = nh + 'px';
   });
