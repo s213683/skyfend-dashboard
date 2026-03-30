@@ -67,13 +67,15 @@
       gap: 20px;
     }
     .logo {
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: 0.04em;
-      background: linear-gradient(90deg, #fff 0%, var(--brand) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      line-height: 0;
+    }
+    .logo svg {
+      display: block;
+      height: 28px;
+      width: auto;
     }
     .dd-wrap { position: relative; }
     .dd-btn {
@@ -141,6 +143,7 @@
       place-items: center;
     }
     .tb-icon:hover { background: rgba(255,255,255,0.06); color: var(--txt); }
+    .tb-icon svg { display: block; width: 20px; height: 20px; flex-shrink: 0; }
     .tb-icon.alert { color: #ff6b6b; position: relative; }
     .tb-icon.alert::after {
       content: "3";
@@ -159,6 +162,22 @@
       line-height: 1;
     }
 
+    /* 顶栏以下：左侧 rail 与右侧主列（工作区 + AI 底栏）并列，rail 一贯到底 */
+    .stage-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .stage-main {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
     /* —— 主工作区 —— */
     .workspace {
       flex: 1;
@@ -169,7 +188,8 @@
     .rail {
       width: var(--rail-w);
       flex-shrink: 0;
-      background: #0d0d0f;
+      align-self: stretch;
+      background: #141414;
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
@@ -190,6 +210,14 @@
     }
     .rail-btn:hover { color: var(--txt); background: rgba(255,255,255,0.05); }
     .rail-btn.on { color: var(--brand); background: rgba(0, 162, 255, 0.12); }
+    .rail-btn .rail-ico {
+      width: 24px;
+      height: auto;
+      max-height: 32px;
+      display: block;
+      object-fit: contain;
+      pointer-events: none;
+    }
 
     .lp-expand-tab {
       display: none;
@@ -624,16 +652,6 @@
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
     .status-txt { color: var(--txt2); }
     .status-txt strong { color: var(--txt); font-weight: 600; }
-    .gear {
-      width: 32px; height: 32px;
-      border: none;
-      border-radius: 6px;
-      background: transparent;
-      color: var(--txt2);
-      cursor: pointer;
-    }
-    .gear:hover { background: rgba(255,255,255,0.06); color: var(--txt); }
-
     .device-body {
       flex: 1;
       min-height: 0;
@@ -641,20 +659,331 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 0;
       gap: 16px;
       position: relative;
     }
     .view-3d {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 0;
       flex: 1;
       min-height: 0;
       width: 100%;
     }
+    /* 顶图：图1 场景底图 + 图2 设备叠放；随配置抽屉收起而增高 */
+    .view-3d-top-bg {
+      position: relative;
+      flex: 1 1 0;
+      min-height: 160px;
+      width: 100%;
+      overflow: hidden;
+      line-height: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .view-3d-bg-img {
+      width: 100%;
+      height: 100%;
+      min-height: 160px;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+      pointer-events: none;
+    }
+    .view-3d-device-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5%;
+      pointer-events: none;
+    }
+    /*
+     * 设备图始终在背景图区域内水平+垂直居中；展开配置时约占层 80%；收起后顶区更高且比例放宽，图标再大一点。
+     */
+    .view-3d-device-img {
+      width: auto;
+      height: auto;
+      max-width: 80%;
+      max-height: 80%;
+      flex-shrink: 1;
+      object-fit: contain;
+      object-position: center center;
+      display: block;
+      filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.45));
+      transition: max-width 0.28s ease, max-height 0.28s ease, filter 0.28s ease;
+    }
+    .view-3d:has(.device-lower-wrap.is-collapsed) .view-3d-device-img {
+      max-width: 94%;
+      max-height: 94%;
+      filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.5));
+    }
+    .view-3d:has(.device-lower-wrap.is-collapsed) .view-3d-device-layer {
+      padding: 3%;
+    }
+    /* 底部配置抽屉：顶栏左侧收展图标 + Tab；仅收起下方详细内容 */
+    .device-lower-wrap {
+      flex: 1 1 42%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .device-lower-wrap.is-collapsed {
+      flex: 0 0 auto;
+      min-height: 0;
+    }
+    .device-config-drawer {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      background: #141414;
+    }
+    .device-lower-wrap.is-collapsed .device-config-drawer {
+      flex: 0 0 auto;
+    }
+    /* 顶区：第一行单独居中收展按钮；第二行工作状态/打击配置 Tab */
+    .device-drawer-topbar {
+      flex-shrink: 0;
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      margin-top: -12px;
+      background: linear-gradient(180deg, #1c1c20 0%, #141414 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.28);
+    }
+    .device-drawer-handle-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 12px 6px;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .device-drawer-chev-btn {
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      padding: 4px 14px;
+      border: none;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.12);
+      cursor: pointer;
+      color: #9aa3ae;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .device-drawer-chev-btn:hover {
+      color: #c8d0da;
+      background: rgba(0, 162, 255, 0.07);
+    }
+    .device-drawer-chev-btn:active {
+      background: rgba(0, 162, 255, 0.12);
+    }
+    .device-drawer-tech-svg {
+      display: block;
+      opacity: 0.92;
+      transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease;
+    }
+    .device-drawer-chev-btn:hover .device-drawer-tech-svg { opacity: 1; }
+    .device-lower-wrap.is-collapsed .device-drawer-tech-svg {
+      transform: rotate(180deg);
+    }
+    .device-lower-toolbar {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      display: flex;
+      align-items: stretch;
+      background: var(--panel2);
+    }
+    .dm-device-tabs {
+      display: flex;
+      flex: 1;
+      align-items: stretch;
+      gap: 0;
+      padding: 0 2px 0 0;
+    }
+    .dm-device-tab {
+      padding: 0 16px;
+      margin: 0;
+      border: none;
+      background: transparent;
+      color: var(--txt2);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .dm-device-tab:hover { color: var(--txt); }
+    .dm-device-tab.on {
+      color: var(--txt);
+      border-bottom-color: var(--brand);
+    }
+    .device-lower-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .device-lower-wrap.is-collapsed .device-lower-body {
+      display: none;
+    }
+    .device-tab-panel {
+      flex: 1;
+      min-height: 0;
+      display: none;
+      flex-direction: column;
+    }
+    .device-tab-panel.on {
+      display: flex;
+    }
+    /* MasterGo 图层 51:11049 · Tab 内可滚动内容 */
+    .device-mg-panel {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 10px 12px 12px;
+      box-sizing: border-box;
+      border-bottom: 1px solid var(--border);
+      -webkit-overflow-scrolling: touch;
+    }
+    .dm-status-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .dm-status-table th,
+    .dm-status-table td {
+      padding: 9px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .dm-status-table th {
+      width: 30%;
+      max-width: 140px;
+      color: var(--txt2);
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.22);
+    }
+    .dm-status-table td {
+      color: var(--txt);
+    }
+    .dm-status-table tbody tr:hover td { background: rgba(255, 255, 255, 0.03); }
+    .dm-status-table .dm-st-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      background: rgba(76, 175, 80, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(76, 175, 80, 0.35);
+    }
+    .device-mg-panel::-webkit-scrollbar { width: 5px; }
+    .device-mg-panel::-webkit-scrollbar-thumb { background: #3a3a3e; border-radius: 3px; }
+    .dm-section { margin-bottom: 14px; }
+    .dm-section:last-child { margin-bottom: 4px; }
+    .dm-h1 {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--txt);
+      margin: 0 0 8px;
+      letter-spacing: 0.02em;
+    }
+    .dm-h2 {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--txt2);
+      margin: 12px 0 6px;
+    }
+    .dm-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--txt);
+      cursor: pointer;
+    }
+    .dm-row:hover { border-color: rgba(0, 162, 255, 0.25); }
+    .dm-row input { accent-color: var(--brand); width: 14px; height: 14px; flex-shrink: 0; }
+    .dm-row span { flex: 1; }
+    .dm-form label {
+      display: block;
+      font-size: 10px;
+      color: var(--txt2);
+      margin-bottom: 4px;
+    }
+    .dm-form input[type="text"] {
+      width: 100%;
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #121214;
+      color: var(--txt);
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    .dm-form input:focus { outline: none; border-color: rgba(0, 162, 255, 0.45); }
+    .dm-strat-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .dm-strat-head .dm-h1 { margin: 0; }
+    .dm-link-btn {
+      border: none;
+      background: transparent;
+      color: var(--brand);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+    .dm-link-btn:hover { background: rgba(0, 162, 255, 0.1); }
+    .dm-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #121214;
+      font-size: 11px;
+      color: var(--txt2);
+    }
+    .dm-pill.is-active {
+      border-color: rgba(0, 162, 255, 0.45);
+      background: rgba(0, 162, 255, 0.08);
+      color: var(--txt);
+    }
+    .dm-pill.is-disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .dm-pill .dm-more { color: var(--txt2); font-size: 14px; letter-spacing: 2px; }
     .device-body.mode-2d .view-3d { display: none; }
     .device-body.mode-2d { padding: 0; }
     .view-2d {
@@ -681,20 +1010,6 @@
       font-size: 10px;
     }
     .view-2d .device-map .leaflet-control-attribution a { color: var(--brand); }
-    .device-visual {
-      width: min(420px, 90%);
-      aspect-ratio: 4/3;
-      display: grid;
-      place-items: center;
-    }
-    .device-visual svg { max-width: 100%; height: auto; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6)); }
-    .placeholder-label {
-      font-size: 28px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.08);
-      letter-spacing: 0.2em;
-    }
-
     .settings-placeholder {
       flex: 1;
       min-height: 0;
@@ -808,23 +1123,24 @@
       flex: 1;
       min-height: 0;
     }
-    /* AI 日志：贴在 stage 最底；左侧让出主导航 rail，与红线（rail 右缘）对齐 */
+    /* AI 日志：在 stage-main 内全宽；rail 已独立左列，无需再 padding-left */
     .stage-ai-dock {
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      margin-left: var(--rail-w);
-      width: calc(100% - var(--rail-w));
+      width: 100%;
       box-sizing: border-box;
       border-top: 2px solid #1e1e22;
-      background: #080809;
+      background: #141414;
       box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.35);
     }
     .stage-ai-dock .h-grip {
       border-top: none;
+      background: #141414;
     }
     .stage-ai-dock .ai-log {
       border-top: 1px solid var(--border);
+      background: #141414;
     }
     .target-flyout {
       position: fixed;
@@ -1199,7 +1515,11 @@
   <div class="stage" id="stage">
     <header class="topbar">
       <div class="topbar-left">
-        <span class="logo">SKYFEND</span>
+        <span class="logo" role="img" aria-label="SKYFEND">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 130 32" aria-hidden="true">
+            <path fill="#13A9EB" fill-rule="evenodd" d="M19.9169161875,11.484739346875L21.1906201875,6.666748046875L6.2614812875,6.666748046875L5.7932519875,8.441476546875L5.7917465875,8.441476546875L4.4292139875,13.590323446875L4.4246971875,13.607095246875L3.2021818875,18.229927046874998L3.2036873875,18.229927046874998L3.1555095875,18.409840046875L13.3270781875,18.409840046875L12.7700191875,20.513899046875L2.5984520875,20.513899046875L1.3232421875,25.333416046875L16.2523811875,25.333416046875L16.2659311875,25.284626046875L18.0846501875,18.409840046875L18.0891661875,18.394592046874997L18.8434521875,15.541914946875L19.3583541875,13.590323446875L9.1882910875,13.590323446875L9.7453488875,11.484739346875L19.9169161875,11.484739346875ZM26.3301581875,13.486645746875L33.8695331875,6.666748046875L40.1334761875,6.666748046875L30.5534151875,15.311688446875L33.9314191875,25.333416046875L28.3949961875,25.333416046875L26.2743111875,19.181328046875002L24.3619231875,20.908791046875002L23.1876221875,25.331890046875L18.4179691875,25.333416046875L23.3687481875,6.666748046875L28.1248171875,6.718587196875L26.3301581875,13.486645746875ZM46.5495571875,6.668272727675L48.1304551875,11.393258546875L52.1988371875,6.668272727675L57.6907731875,6.669797408375L49.1524201875,16.581747046875L47.8187711875,21.564403046875L46.8267741875,25.331890046875L42.0915721875,25.333416046875L43.0835651875,21.562880046875L44.3752591875,16.581747046875L41.0576171875,6.669797408375L41.0576171875,6.668272727675L46.0026091875,6.666748046875L46.0026091875,6.668272727675L46.5495571875,6.668272727675ZM73.8615191875,6.666748046875L72.5878141875,11.484739346875L62.4147411875,11.484739346875L61.8576851875,13.590323446875L72.0292511875,13.590323446875L70.7555461875,18.409840046875L60.5839801875,18.409840046875L58.7517131875,25.331890046875L53.9941401875,25.333416046875L58.9323801875,6.668272727675L58.9323801875,6.666748046875L73.8615191875,6.666748046875ZM89.6844941875,11.484739346875L90.9581981875,6.666748046875L76.0290601875,6.666748046875L75.5593261875,8.441476546875L74.1967921875,13.590323446875L74.1907731875,13.614718446874999L72.3645251875,20.513899046875L72.3630221875,20.521522046875L71.5590511875,23.560211046875L71.5605541875,23.560211046875L71.0908201875,25.333416046875L86.0199581875,25.333416046875L87.2951661875,20.513899046875L77.1236041875,20.513899046875L77.6806561875,18.409840046875L87.8522261875,18.409840046875L89.1259311875,13.590323446875L78.9543611875,13.590323446875L79.5114211875,11.484739346875L89.6844941875,11.484739346875ZM97.8362041875,6.677414713875L103.2421321875,17.475130046875L106.0889321875,6.668271856375L110.8251221875,6.666748046875L105.9091421875,25.321224046875L101.1744541875,25.322748046875L95.7685321875,14.525033946875L92.9202271875,25.331892046875L88.1855471875,25.333416046875L93.1000291875,6.678938522875L97.8347091875,6.677414713875L97.8362041875,6.677414713875ZM126.6051921875,6.667236328125L112.9619421875,6.668761008875L108.0524721875,25.333904046875L121.6957221875,25.332378046875L124.6503921875,23.094147046875L128.3818821875,8.906992446875L126.6051921875,6.667236328125ZM120.5970321875,20.513809046875L114.0485721875,20.513809046875L116.4239721875,11.484649646874999L122.9724321875,11.484649646874999L120.5970321875,20.513809046875Z"/>
+          </svg>
+        </span>
         <div class="dd-wrap" data-dd>
           <button type="button" class="dd-btn" aria-expanded="false">
             园区
@@ -1225,25 +1545,82 @@
       <div class="topbar-right">
         <span class="datetime" id="clock">星期二 2024-07-30 14:04:45</span>
         <div class="icon-row">
-          <button type="button" class="tb-icon" title="连接">📶</button>
-          <button type="button" class="tb-icon" title="防护">🛡</button>
-          <button type="button" class="tb-icon alert" title="告警">🔔</button>
+          <button type="button" class="tb-icon" title="任务" aria-label="任务">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" fill-opacity="0.85" fill-rule="evenodd" d="M20.4998779,8.5L12.5,8.5L12.5,9.5L20.4998779,9.5L20.4998779,8.5ZM20.5,16.5L12.5,16.5L12.5,17.5L20.5,17.5L20.5,16.5Z"/>
+              <path fill="currentColor" fill-opacity="0.85" fill-rule="evenodd" d="M5.9501636,11.7351189L10.4225359,6.8434614499999995L8.5774641,5.1565385500000005L5.7355511,8.2648811L4.31157798,7.0492944L2.68842202,8.9507055L5.9501636,11.7351189Z"/>
+              <path fill="currentColor" fill-opacity="0.85" fill-rule="evenodd" d="M5.9501636,19.7351189L10.4225359,14.84346145L8.5774641,13.15653855L5.7355511,16.2648811L4.31157798,15.0492944L2.68842202,16.9507055L5.9501636,19.7351189Z"/>
+            </svg>
+          </button>
+          <button type="button" class="tb-icon" title="值守管理" aria-label="值守管理">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" fill-opacity="0.85" fill-rule="evenodd" d="M18.684238,13.077179C16.657847,17.373854,13.0160542,19.653379,12.0028582,20C10.9411445,19.663005,7.404978,17.532722,5.3100905,13.0747719C4.29975006,10.922822499999999,4.040003527,8.491650100000001,4.000046693738,6.8331575C3.9971924559,6.6718814,4.12562566,6.5346775,4.25405875,6.484128C7.8701663,5.07116,11.209428299999999,4.0024068805,12.0171299,4C12.8276854,4.0024072477,16.152677,5.0663459,19.748807,6.476907000000001C19.840137,6.517828,20.002819,6.724838,19.999963,6.8211222C19.957152,8.491650100000001,19.694578999999997,10.9324508,18.684238,13.077179ZM9.7067695,17.333998Q11.0413876,18.515514,11.9907193,18.92791Q12.9261837,18.496426,14.29818,17.273392Q16.543427,15.271921,17.779592,12.6510172L17.779778999999998,12.6506195Q18.835701,10.408879800000001,18.983769000000002,7.251527299999999Q13.2135706,5.0035571999999995,12.0201111,4.99999571Q10.830462,5.0035403,5.0153979,7.2607687Q5.1577196999999995,10.3972392,6.2151426999999995,12.6494694Q7.4973564,15.378039,9.7067695,17.333998Z"/>
+              <path fill="currentColor" fill-opacity="0.85" fill-rule="evenodd" d="M11.4287024,14.388095400000001L15.738029000000001,9.67476916L14.261970999999999,8.32523084L11.2570124,11.611904899999999L9.64926237,10.2394354L8.35073763,11.7605646L11.4287024,14.388095400000001Z"/>
+            </svg>
+          </button>
+          <button type="button" class="tb-icon" title="设备" aria-label="设备">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" fill-opacity="0.85" fill-rule="evenodd" d="M3,10L3,6Q3,5.90150857,3.019214718,5.80490965Q3.038429435,5.70831072,3.076120459,5.6173164799999995Q3.11381148,5.52632231,3.16853037,5.44442973Q3.2232492600000002,5.36253715,3.2928932,5.2928932Q3.36253715,5.22324926,3.4444297600000002,5.16853037Q3.52632231,5.11381148,3.61731648,5.076120459Q3.70831072,5.038429435,3.80490965,5.019214718Q3.90150857,5,4,5L20,5Q20.09849,5,20.195087,5.019214718Q20.291687,5.038429435,20.382681,5.076120459Q20.473675,5.11381148,20.555569,5.16853037Q20.637461,5.22324926,20.707106,5.2928932Q20.776749,5.36253715,20.831469,5.44442976Q20.886189,5.52632231,20.923878,5.6173164799999995Q20.961571,5.70831072,20.980785,5.80490965Q21,5.90150857,21,6L21,10Q21,10.0984912,20.980785,10.1950898Q20.961571,10.2916889,20.923878,10.382682800000001Q20.886189,10.473677200000001,20.831469,10.5555696Q20.776749,10.6374626,20.707106,10.7071066Q20.637461,10.7767506,20.555567,10.8314691Q20.473675,10.8861876,20.382681,10.9238791Q20.291687,10.9615698,20.195087,10.9807849Q20.09849,11,20,11L4,11Q3.90150857,11,3.80490965,10.9807849Q3.70831072,10.9615698,3.61731648,10.9238791Q3.52632231,10.8861876,3.44442973,10.8314691Q3.36253715,10.7767506,3.2928932,10.7071066Q3.2232492600000002,10.6374626,3.16853037,10.5555701Q3.11381148,10.473677200000001,3.076120459,10.382682800000001Q3.038429435,10.2916889,3.019214718,10.1950903Q3,10.0984912,3,10ZM8,10L20,10L20,6L8,6L8,10ZM3,18L3,14Q3,13.9015083,3.019214718,13.8049088Q3.038429435,13.7083092,3.076120459,13.6173153Q3.11381148,13.5263214,3.16853037,13.4444284Q3.2232492600000002,13.3625355,3.2928932,13.2928925Q3.36253715,13.2232485,3.4444297600000002,13.1685295Q3.52632231,13.1138115,3.61731648,13.0761204Q3.70831072,13.0384293,3.80490965,13.0192146Q3.90150857,13,4,13L20,13Q20.09849,13,20.195087,13.0192146Q20.291687,13.0384293,20.382681,13.0761204Q20.473675,13.1138115,20.555569,13.1685295Q20.637461,13.2232485,20.707106,13.2928925Q20.776749,13.3625355,20.831469,13.4444284Q20.886189,13.5263214,20.923878,13.6173153Q20.961571,13.7083092,20.980785,13.8049088Q21,13.9015083,21,14L21,18Q21,18.098492,20.980785,18.195089Q20.961571,18.291688999999998,20.923878,18.382683Q20.886189,18.473675999999998,20.831469,18.555569Q20.776749,18.637461000000002,20.707106,18.707106Q20.637461,18.776749000000002,20.555567,18.831469Q20.473675,18.886187,20.382681,18.923878000000002Q20.291687,18.961569,20.195087,18.980784Q20.09849,18.999999000000003,20,19L4,19Q3.90150857,18.999999000000003,3.80490965,18.980783000000002Q3.70831072,18.961569,3.61731648,18.923878000000002Q3.52632231,18.886187,3.44442973,18.831469Q3.36253715,18.776749000000002,3.2928932,18.707106Q3.2232492600000002,18.637461000000002,3.16853037,18.555568Q3.11381148,18.473675,3.076120459,18.382682000000003Q3.038429435,18.291688,3.019214718,18.195089Q3,18.098492,3,18ZM8,18L20,18L20,14L8,14L8,18Z"/>
+            </svg>
+          </button>
+          <button type="button" class="tb-icon" title="通讯" aria-label="通讯">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" fill-opacity="0.85" fill-rule="evenodd" d="M8.0320182,16.748285L19.368074999999997,16.748285C20.047915,16.748283,20.5,16.267086,20.5,15.544022L20.5,4.7060246C20.5,3.9829604,20.047947,3.5,19.368108,3.5L4.6317595,3.5C3.95192027,3.5,3.5,3.9829604,3.5,4.7060246L3.5,20.5L4.5,19.672176L8.0320182,16.748285ZM4.5,18.373988L7.6718111,15.748286L19.368074999999997,15.748286Q19.5,15.748286,19.5,15.544022L19.5,4.7060246Q19.5,4.5,19.368109,4.5L4.6317595,4.5Q4.5,4.5,4.5,4.7060246L4.5,18.373988ZM15.996099,8.67519L8.4984131,8.67519L8.4984131,11.17519L15.996099,11.17519L15.996099,8.67519Z"/>
+            </svg>
+          </button>
           <button type="button" class="tb-ai" id="btnAIEntry" title="AI 助手 / 日志">✦ AI</button>
-          <button type="button" class="tb-icon" title="设置">⚙</button>
-          <button type="button" class="tb-icon" title="用户">👤</button>
-          <button type="button" class="tb-icon" id="btn-fs" title="全屏">⛶</button>
+          <button type="button" class="tb-icon" title="告警" aria-label="告警">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="#BD0000" d="M21.99995138125,7.2585769L20.71573618125,7.2585769L20.71573618125,4.703396C20.71573618125,4.4682444,20.52409358125,4.2775899,20.28766488125,4.2775899L17.71923828125,4.2775899L17.71923828125,3L21.14380908125,3C21.61666658125,3,21.99995138125,3.3813085,21.99995138125,3.85172671L21.99995138125,7.2585769Z"/>
+              <path fill="#BD0000" d="M2,17.7412109375L3.2842143999999998,17.7412109375L3.2842143999999998,20.2963919375C3.2842143999999998,20.5316009375,3.4758569,20.722254737500002,3.7122859999999998,20.722254737500002L6.2806559,20.722254737500002L6.2806559,21.9998440375L2.8561432399999998,21.9998440375C2.38328543,21.9998440375,2,21.618479037500002,2,21.1481177375L2,17.7412109375Z"/>
+              <path fill="#BD0000" d="M6.2806559,3L6.2806559,4.2775899L3.7122859999999998,4.2775899C3.4758569,4.2775899,3.2842143999999998,4.4683019999999996,3.2842143999999998,4.7034534L3.2842143999999998,7.2586341L2,7.2586341L2,3.85172671C2,3.3813656,2.38328543,3,2.8561432399999998,3L6.2806559,3Z"/>
+              <path fill="#BD0000" d="M17.71875,21.9998440375L17.71875,20.722254737500002L20.2871766,20.722254737500002C20.5236053,20.722254737500002,20.7152479,20.5316009375,20.7152479,20.2963919375L20.7152479,17.7412109375L21.9994631,17.7412109375L21.9994631,21.1481177375C21.9994631,21.618479037500002,21.6161783,21.9998440375,21.1433208,21.9998440375L17.71875,21.9998440375Z"/>
+              <path fill="#BD0000" fill-rule="evenodd" d="M4.447373851875,17.661517718749998C4.672113741875,18.066254718750002,5.096829711875,18.317179718749998,5.557766471875,18.31752471875L18.637030671875,18.31752471875C19.097969671875,18.317179718749998,19.522685671875,18.066254718750002,19.747427671875002,17.661517718749998C19.972105671875,17.25677871875,19.961692671875,16.76143471875,19.720171671875,16.36660071875L13.180539171875,5.68651204875C12.683494571875,4.87467792875,11.510030271875,4.87467792875,11.012986671875,5.68651204875L4.474627421875,16.36660071875C4.233106538875,16.76143471875,4.222691379875,17.25677871875,4.447373851875,17.661517718749998ZM12.823581671875,13.15120981875L12.823581671875,8.681486818749999C12.823581671875,8.280722118749999,12.499720571875,7.9558842187500005,12.100292171875001,7.9558842187500005C11.700805671874999,7.9558842187500005,11.377002671875001,8.280722118749999,11.377002671875001,8.681486818749999L11.377002671875001,13.15120981875C11.377002671875001,13.55197621875,11.700805671874999,13.87681481875,12.100292171875001,13.87681481875C12.499720571875,13.87681481875,12.823581671875,13.55197621875,12.823581671875,13.15120981875ZM12.097399671875,16.59058471875C12.576737371875,16.59058471875,12.965346371875,16.200755718750003,12.965346371875,15.71986071875C12.965346371875,15.23896671875,12.576737371875,14.84913821875,12.097399671875,14.84913821875C11.618061571875,14.84913821875,11.229453071875,15.23896671875,11.229453071875,15.71986071875C11.229453071875,16.200755718750003,11.618061571875,16.59058471875,12.097399671875,16.59058471875Z"/>
+            </svg>
+          </button>
+          <button type="button" class="tb-icon" title="设置" aria-label="设置">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+              <defs><clipPath id="clipTbSettings"><rect width="16" height="16" rx="0"/></clipPath></defs>
+              <g clip-path="url(#clipTbSettings)">
+                <path fill="currentColor" fill-opacity="0.85" d="M13.977843,9.3426018C13.218649,8.064067399999999,13.675996,6.433949,15,5.6993303L13.574241,3.3168545C13.153964,3.554487,12.675532,3.6795371,12.188391,3.6790819C10.6596193,3.6742568,9.424366,2.4747865,9.4293842,1L6.576055,1C6.580174,1.47141027,6.4530029,1.93523979,6.2078257,2.3430407C5.4468765,3.615211,3.7535629,4.0474336,2.4257581999999998,3.3107297L1,5.6932063C1.4241359199999999,5.9250717,1.77590644,6.2626076,2.0185281,6.6705208C2.7763225,7.9466662,2.3222483,9.5736752,1.0027209048,10.3102913L2.4284787000000003,12.693642C2.8348014,12.465281,3.3055191,12.334915,3.8088877,12.334915C5.3319893,12.339725,6.5649061,13.530671,6.5678926,14.999999L9.4194088,14.999999C9.4194088,14.546776,9.5373144,14.090054,9.7885447,13.670083C10.5485868,12.400536,12.237367,11.967439,13.564264,12.699768L14.990021,10.3172932C14.568868,10.0849018,14.219491,9.7484694,13.977843,9.3426018ZM8.0009065,10.834384C6.3779697,10.834384,5.0623207,9.5651922,5.0623207,7.9995623C5.0623207,6.4339333,6.3779697,5.1647387,8.0009065,5.1647387C9.6238413,5.1647387,10.9394913,6.4339333,10.9394913,7.9995623C10.9394913,9.5651922,9.6238413,10.834384,8.0009065,10.834384Z"/>
+              </g>
+            </svg>
+          </button>
+          <button type="button" class="tb-icon" title="用户" aria-label="用户">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+              <defs><clipPath id="clipTbUser"><rect width="16" height="16" rx="0"/></clipPath></defs>
+              <g clip-path="url(#clipTbUser)">
+                <path fill="currentColor" fill-opacity="0.65" d="M5.0765629,5.0750003C5.0765633999999995,6.7732759,6.4532876,8.1500001,8.1515636,8.1500001C9.8498392,8.1500001,11.2265635,6.7732759,11.2265635,5.0750003C11.2265635,3.3767245,9.8498392,2,8.1515636,2C6.4532881,2,5.0765633999999995,3.3767245,5.0765629,5.0750003ZM10.3484373,9.468750499999999L5.9546876,9.468750499999999C3.7796876,9.468750499999999,2,11.2406254,2,13.862501L14.303125,13.862501C14.301563,11.484375,12.523438,9.468750499999999,10.3484373,9.468750499999999Z"/>
+              </g>
+            </svg>
+          </button>
+          <button type="button" class="tb-icon" id="btn-fs" title="放大 / 全屏" aria-label="放大">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true">
+              <defs><clipPath id="clipTbZoom"><rect width="16" height="16" rx="0"/></clipPath></defs>
+              <g clip-path="url(#clipTbZoom)">
+                <path fill="currentColor" fill-opacity="0.85" d="M10.1287766,9.264608899999999L9.253613,10.1549568L11.7844944,12.723571L10.53088,14L13.976347,14L13.976347,10.5016413L12.722733,11.7780695L10.1287766,9.264608899999999ZM10.3337708,2.015758401L11.6662283,3.3473406L9.2614985,5.7977669L10.1918535,6.7275109L12.667543,4.3401182L14,5.671700700000001L14,2.015758401L10.3337708,2.015758401ZM5.6662281,2L2,2L2,5.6795793L3.3324572,4.3401175L5.808147,6.7353897L6.7385025,5.7977669L4.3337717,3.3315821000000003L5.6662281,2ZM5.855453300000001,9.2567296L3.2614979,11.762311L2.0078843785,10.4858828L2.0078843785,13.992119L5.4533503,13.992119L4.1997371,12.715692L6.7306175,10.1470776L5.855453300000001,9.2567296Z"/>
+              </g>
+            </svg>
+          </button>
         </div>
       </div>
     </header>
 
-    <div class="workspace" id="workspace">
+    <div class="stage-body">
       <nav class="rail" aria-label="主导航">
-        <button type="button" class="rail-btn on" title="态势">☀</button>
-        <button type="button" class="rail-btn" title="雷达">◎</button>
-        <button type="button" class="rail-btn" title="分析">▤</button>
+        <button type="button" class="rail-btn on" title="态势">
+          <img class="rail-ico" src="assets/rail-situation.svg" alt="" width="24" height="40" decoding="async" />
+        </button>
+        <button type="button" class="rail-btn" title="总览">
+          <img class="rail-ico" src="assets/rail-overview.svg" alt="" width="24" height="40" decoding="async" />
+        </button>
+        <button type="button" class="rail-btn" title="回放">
+          <img class="rail-ico" src="assets/rail-playback.svg" alt="" width="24" height="40" decoding="async" />
+        </button>
         <button type="button" class="rail-btn" title="历史">🕐</button>
       </nav>
-
+      <div class="stage-main">
+    <div class="workspace" id="workspace">
       <button type="button" class="lp-expand-tab" id="btnLpExpand" title="展开追踪面板">
         <span aria-hidden="true">⟩</span>
         <span>追踪</span>
@@ -1452,29 +1829,102 @@
               </div>
               <div class="device-head-rt">
                 <button type="button" class="btn-2d" id="btn2d" aria-pressed="false" title="切换 2D 地图视图">2D</button>
-                <button type="button" class="gear" title="设备设置">⚙</button>
               </div>
             </div>
             <div class="device-body" id="deviceBody">
               <div class="view-3d">
-                <div class="device-visual" aria-hidden="true">
-                  <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="g1" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#f2f4f7"/><stop offset="100%" stop-color="#c5cad3"/>
-                      </linearGradient>
-                    </defs>
-                    <ellipse cx="160" cy="248" rx="95" ry="10" fill="rgba(0,0,0,0.35)"/>
-                    <path d="M120 220 L200 220 L195 235 L125 235 Z" fill="#6b7280"/>
-                    <rect x="135" y="175" width="50" height="48" rx="4" fill="url(#g1)" stroke="#9ca3af" stroke-width="1"/>
-                    <rect x="148" y="130" width="24" height="50" rx="3" fill="url(#g1)" stroke="#9ca3af"/>
-                    <circle cx="160" cy="105" r="38" fill="url(#g1)" stroke="#9ca3af" stroke-width="1.5"/>
-                    <circle cx="160" cy="105" r="22" fill="none" stroke="#00a2ff" stroke-width="2" opacity="0.5"/>
-                    <line x1="160" y1="67" x2="160" y2="143" stroke="#00a2ff" stroke-width="1.5" opacity="0.4"/>
-                    <line x1="122" y1="105" x2="198" y2="105" stroke="#00a2ff" stroke-width="1.5" opacity="0.4"/>
-                  </svg>
+                <div class="view-3d-top-bg" aria-hidden="true">
+                  <img class="view-3d-bg-img" src="assets/device-area-scene-bg.png" alt="" decoding="async" fetchpriority="low" />
+                  <div class="view-3d-device-layer">
+                    <img class="view-3d-device-img" src="assets/device-area-unit.svg" alt="" decoding="async" fetchpriority="low" />
+                  </div>
                 </div>
-                <div class="placeholder-label">设备区域</div>
+                <div class="device-lower-wrap" id="deviceLowerWrap">
+                  <div class="device-config-drawer">
+                    <div class="device-drawer-topbar">
+                      <div class="device-drawer-handle-row">
+                        <button type="button" class="device-drawer-chev-btn" id="btnDeviceDrawerToggle" aria-expanded="true" aria-controls="deviceLowerBody" aria-label="收起配置详细内容" title="收起详细内容（保留 Tab）">
+                          <svg class="device-drawer-tech-svg" width="18" height="12" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <defs>
+                              <linearGradient id="deviceDrawerTriGrad" x1="9" y1="0" x2="9" y2="8" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#e4e8ee"/>
+                                <stop offset="0.5" stop-color="#a7adb8"/>
+                                <stop offset="1" stop-color="#717883"/>
+                              </linearGradient>
+                            </defs>
+                            <path d="M9 .9L15.15 7.4H2.85L9 .9Z" fill="url(#deviceDrawerTriGrad)"/>
+                            <path d="M3.5 8.2L9 11.1L14.5 8.2" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div class="device-lower-toolbar">
+                        <div class="dm-device-tabs" role="tablist" aria-label="设备详情">
+                          <button type="button" class="dm-device-tab on" id="tabDeviceStatus" role="tab" data-device-tab="status" aria-selected="true">工作状态</button>
+                          <button type="button" class="dm-device-tab" id="tabDeviceStrike" role="tab" data-device-tab="strike" aria-selected="false">打击配置</button>
+                        </div>
+                      </div>
+                    </div>
+                  <div class="device-lower-body" id="deviceLowerBody">
+                    <div class="device-tab-panel on" id="deviceTabPanelStatus" role="tabpanel" data-panel="status" aria-labelledby="tabDeviceStatus">
+                      <div class="device-mg-panel device-status-panel" aria-label="工作状态">
+                        <table class="dm-status-table">
+                          <tbody>
+                            <tr><th scope="row">设备名称</th><td id="dmStName">SSH300#001</td></tr>
+                            <tr><th scope="row">运行状态</th><td><span class="dm-st-tag" id="dmStRun">待机中</span></td></tr>
+                            <tr><th scope="row">工作模式</th><td>侦测 + 干扰就绪</td></tr>
+                            <tr><th scope="row">固件版本</th><td>v2.4.1</td></tr>
+                            <tr><th scope="row">最近心跳</th><td id="dmStHeartbeat">—</td></tr>
+                            <tr><th scope="row">机箱温度</th><td>42°C</td></tr>
+                            <tr><th scope="row">输出功率</th><td>低功率 / 合规模式</td></tr>
+                            <tr><th scope="row">覆盖频段</th><td>400 MHz ~ 6 GHz（模组依接入）</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div class="device-tab-panel" id="deviceTabPanelStrike" role="tabpanel" data-panel="strike" aria-labelledby="tabDeviceStrike">
+                      <div class="device-mg-panel" id="deviceMgPanel" aria-label="干扰与策略（来自 MasterGo 设计稿）">
+                  <!-- 设计来源: https://mastergo.com/goto/RK8FgN5J?page_id=3:09&layer_id=51:11049&file=183775064982255 -->
+                  <section class="dm-section">
+                    <h3 class="dm-h1">干扰模式</h3>
+                    <label class="dm-row"><input type="checkbox" checked /> <span>通信干扰</span></label>
+                    <label class="dm-row"><input type="checkbox" /> <span>导航干扰</span></label>
+                  </section>
+                  <section class="dm-section">
+                    <h3 class="dm-h1">通信干扰模式</h3>
+                    <label class="dm-row"><input type="radio" name="dm-comm-mode" checked /> <span>指定策略</span></label>
+                    <label class="dm-row"><input type="radio" name="dm-comm-mode" /> <span>智能干扰</span></label>
+                    <label class="dm-row"><input type="radio" name="dm-comm-mode" /> <span>追频干扰</span></label>
+                  </section>
+                  <section class="dm-section dm-form">
+                    <label for="dm-duration">通信干扰时长 (s)</label>
+                    <input id="dm-duration" type="text" value="100" inputmode="numeric" autocomplete="off" />
+                  </section>
+                  <section class="dm-section">
+                    <div class="dm-strat-head">
+                      <h3 class="dm-h1">通信干扰策略</h3>
+                      <button type="button" class="dm-link-btn">全选</button>
+                    </div>
+                    <h4 class="dm-h2">默认策略</h4>
+                    <div class="dm-pill is-active is-disabled"><span>DJI宽频打击</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill is-active is-disabled"><span>DJI宽频打击</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill is-active is-disabled"><span>FPV扫频打击</span><span class="dm-more">···</span></div>
+                    <h4 class="dm-h2">自定义策略</h4>
+                    <div class="dm-custom-list" id="dmCustomList">
+                    <div class="dm-pill"><span>梳状打击策略</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill is-active"><span>自定义策略</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill is-active"><span>自定义策略</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill"><span>梳状打击策略</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill"><span>梳状打击策略</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill"><span>梳状打击策略</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill"><span>梳状打击策略</span><span class="dm-more">···</span></div>
+                    <div class="dm-pill"><span>梳状打击策略</span><span class="dm-more">···</span></div>
+                    </div>
+                  </section>
+                      </div>
+                    </div>
+                  </div>
+                  </div>
+                </div>
               </div>
               <div class="view-2d">
                 <div id="deviceMap" class="device-map" aria-label="设备周边地图"></div>
@@ -1571,6 +2021,8 @@
         </div>
       </footer>
     </div>
+      </div>
+    </div>
 
   </div>
 
@@ -1595,6 +2047,11 @@
   const devNameEl = document.getElementById('devName');
   const devCoordEl = document.getElementById('devCoord');
   const devStateEl = document.getElementById('devState');
+  const dmStNameEl = document.getElementById('dmStName');
+  const dmStRunEl = document.getElementById('dmStRun');
+  const dmStHeartbeatEl = document.getElementById('dmStHeartbeat');
+  const deviceLowerWrap = document.getElementById('deviceLowerWrap');
+  const btnDeviceDrawerToggle = document.getElementById('btnDeviceDrawerToggle');
 
   var draggingV = false;
   var deviceMap = null;
@@ -1626,6 +2083,8 @@
     var geo = readCardGeo(card);
     if (name) devNameEl.textContent = name;
     if (state) devStateEl.textContent = state;
+    if (name && dmStNameEl) dmStNameEl.textContent = name;
+    if (state && dmStRunEl) dmStRunEl.textContent = state;
     if (geo) devCoordEl.textContent = formatCoord(geo.lat, geo.lng);
     if (deviceMarker && name) deviceMarker.bindPopup(name);
     syncMapToCard(card);
@@ -1750,6 +2209,48 @@
       setTimeout(refreshMapLayout, 300);
     }
   });
+
+  /* 配置面板抽屉：仅折叠 Tab+内容区，手柄条（侦测类型+箭头）始终可见 */
+  if (btnDeviceDrawerToggle && deviceLowerWrap) {
+    btnDeviceDrawerToggle.addEventListener('click', function () {
+      deviceLowerWrap.classList.toggle('is-collapsed');
+      var collapsed = deviceLowerWrap.classList.contains('is-collapsed');
+      btnDeviceDrawerToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      btnDeviceDrawerToggle.title = collapsed ? '展开详细内容（工作状态 / 打击配置）' : '收起详细内容（保留 Tab）';
+      btnDeviceDrawerToggle.setAttribute('aria-label', collapsed ? '展开配置详细内容' : '收起配置详细内容');
+    });
+  }
+  document.querySelectorAll('.dm-device-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var key = tab.getAttribute('data-device-tab');
+      if (!key) return;
+      document.querySelectorAll('.dm-device-tab').forEach(function (t) {
+        t.classList.remove('on');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('on');
+      tab.setAttribute('aria-selected', 'true');
+      document.querySelectorAll('.device-tab-panel').forEach(function (p) {
+        p.classList.toggle('on', p.getAttribute('data-panel') === key);
+      });
+      if (deviceLowerWrap && deviceLowerWrap.classList.contains('is-collapsed')) {
+        deviceLowerWrap.classList.remove('is-collapsed');
+        if (btnDeviceDrawerToggle) {
+          btnDeviceDrawerToggle.setAttribute('aria-expanded', 'true');
+          btnDeviceDrawerToggle.title = '收起详细内容（保留 Tab）';
+          btnDeviceDrawerToggle.setAttribute('aria-label', '收起配置详细内容');
+        }
+      }
+    });
+  });
+
+  var dmSelectAllBtn = document.querySelector('#deviceMgPanel .dm-strat-head .dm-link-btn');
+  var dmCustomListEl = document.getElementById('dmCustomList');
+  if (dmSelectAllBtn && dmCustomListEl) {
+    dmSelectAllBtn.addEventListener('click', function () {
+      dmCustomListEl.querySelectorAll('.dm-pill').forEach(function (p) { p.classList.add('is-active'); });
+    });
+  }
 
   btnCloseDevicePanels.addEventListener('click', function () {
     setPanelsClosed(true);
@@ -2032,6 +2533,9 @@
     var s = w + ' ' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' +
       pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
     document.getElementById('clock').textContent = s;
+    if (dmStHeartbeatEl) {
+      dmStHeartbeatEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
   }
   tick();
   setInterval(tick, 1000);
